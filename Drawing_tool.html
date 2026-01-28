@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>SVG Freehand Drawing Tool</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .toolbar {
+            width: 100%;
+            padding: 10px;
+            background: #1f1f1f;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        input[type="color"],
+        button {
+            padding: 6px;
+            cursor: pointer;
+        }
+        
+        svg {
+            width: 90vw;
+            height: 80vh;
+            border: 2px solid #444;
+            background: #fff;
+            margin-top: 10px;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toolbar">
+        <label>Color:</label>
+        <input type="color" id="colorPicker" value="#000000">
+        <button onclick="undo()">Undo</button>
+    </div>
+
+    <svg id="svgCanvas"></svg>
+
+    <script>
+        const svg = document.getElementById("svgCanvas");
+        const colorPicker = document.getElementById("colorPicker");
+
+        let isDrawing = false;
+        let currentPath = null;
+        let shapes = [];
+
+        svg.addEventListener("mousedown", (e) => {
+            isDrawing = true;
+
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            currentPath = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "path"
+            );
+
+            currentPath.setAttribute("d", `M ${x} ${y}`);
+            currentPath.setAttribute("fill", "none");
+            currentPath.setAttribute("stroke", colorPicker.value);
+            currentPath.setAttribute("stroke-width", 2);
+            currentPath.setAttribute("stroke-linecap", "round");
+            currentPath.setAttribute("stroke-linejoin", "round");
+            svg.appendChild(currentPath);
+        });
+
+        svg.addEventListener("mousemove", (e) => {
+            if (!isDrawing) return;
+
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            let d = currentPath.getAttribute("d");
+            currentPath.setAttribute("d", d + ` L ${x} ${y}`);
+        });
+
+        svg.addEventListener("mouseup", () => {
+            if (isDrawing) {
+                isDrawing = false;
+                shapes.push(currentPath);
+            }
+        });
+
+        svg.addEventListener("mouseleave", () => {
+            isDrawing = false;
+        });
+
+        function undo() {
+            if (shapes.length > 0) {
+                const last = shapes.pop();
+                svg.removeChild(last);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
